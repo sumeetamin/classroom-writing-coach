@@ -4,7 +4,7 @@ A free, browser-based writing lesson tool for teachers. It creates a model revis
 
 ## Use the hosted app
 
-Open the GitHub Pages link published for this repository. Choose **Load free model** once. The first run downloads the WebLLM runtime and model weights to the browser cache; the model is then run on-device. No API key or paid model subscription is needed. A compatible browser with WebGPU and enough available GPU memory is required.
+Open the [Classroom Writing Coach](https://sumeetamin.github.io/classroom-writing-coach/). Choose **Load free model** once. The first run downloads the WebLLM runtime and model weights to the browser cache and may take several minutes; the model is then run on-device. No API key or paid model subscription is needed. A compatible browser with WebGPU and enough available GPU memory is required.
 
 ## Run locally
 
