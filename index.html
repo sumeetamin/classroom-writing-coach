@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f1">
+  <title>Classroom Writing Coach</title>
+  <style>
+    :root { --ink:#20251f; --muted:#667067; --line:#e3e5df; --paper:#fff; --canvas:#f6f5f1; --green:#23634f; --green2:#e8f2ec; --gold:#d8a94e; --red:#9b4939; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--canvas); color:var(--ink); font:15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
+    header { border-bottom:1px solid var(--line); background:rgba(255,255,255,.8); }
+    .top { max-width:1180px; padding:16px 26px; margin:auto; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:-.02em; }
+    .mark { height:36px; width:36px; border-radius:11px; display:grid; place-items:center; background:var(--green); color:white; font-size:19px; }
+    .status { color:var(--muted); display:flex; gap:8px; align-items:center; font-size:13px; }
+    .dot { height:8px; width:8px; border-radius:99px; background:#b2b8ae; }
+    .dot.ok { background:#3b9870; } .dot.bad { background:#c36d50; }
+    main { max-width:1180px; padding:44px 26px 72px; margin:auto; }
+    .intro { display:flex; align-items:end; justify-content:space-between; gap:24px; margin-bottom:28px; }
+    .eyebrow { text-transform:uppercase; letter-spacing:.13em; font-size:11px; font-weight:700; color:var(--green); }
+    h1 { font-size:clamp(30px,4vw,46px); line-height:1.08; letter-spacing:-.045em; max-width:700px; margin:10px 0 12px; }
+    .intro p { max-width:650px; margin:0; color:var(--muted); font-size:16px; }
+    .privacy { min-width:205px; padding:12px 14px; border:1px solid #d8e5dc; border-radius:12px; color:#345c49; background:#eff6f0; font-size:12px; }
+    .layout { display:grid; grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr); gap:18px; align-items:start; }
+    .card { background:var(--paper); border:1px solid var(--line); border-radius:16px; box-shadow:0 5px 22px rgba(35,45,35,.035); }
+    .card-head { padding:19px 21px 14px; border-bottom:1px solid #eff0eb; display:flex; justify-content:space-between; gap:12px; align-items:center; }
+    .card-head h2 { margin:0; font-size:16px; letter-spacing:-.02em; }
+    .step { color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:.1em; font-size:10px; }
+    .card-body { padding:19px 21px 21px; }
+    label { display:block; font-weight:650; font-size:12px; color:#485248; margin:0 0 7px; }
+    textarea, select, input { width:100%; border:1px solid #d9ddd6; border-radius:9px; background:white; color:var(--ink); font:inherit; outline:none; }
+    textarea { min-height:245px; padding:13px 14px; resize:vertical; line-height:1.6; }
+    textarea:focus, select:focus, input:focus { border-color:#6e9b83; box-shadow:0 0 0 3px #e7f1ea; }
+    select, input { padding:10px 11px; }
+    .meta { display:flex; justify-content:space-between; align-items:center; margin:8px 0 17px; color:#848b82; font-size:11px; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .full { grid-column:1 / -1; }
+    .hint { color:#7b8378; font-weight:400; font-size:11px; }
+    .actions { display:flex; align-items:center; gap:12px; margin-top:18px; }
+    button { border:0; cursor:pointer; border-radius:9px; font:650 13px/1.2 inherit; }
+    .primary { display:flex; gap:9px; align-items:center; padding:12px 16px; color:white; background:var(--green); box-shadow:0 3px 8px #23634f2b; }
+    .primary:hover { background:#194c3b; } .primary:disabled { opacity:.55; cursor:wait; }
+    .secondary { padding:8px 10px; background:#f2f3ef; color:#4f5b50; font-size:11px; }
+    .tiny { color:var(--muted); font-size:11px; }
+    .model-status { display:flex; justify-content:space-between; gap:12px; align-items:center; border:1px solid #e7e9e3; background:#f8f9f6; border-radius:9px; padding:11px 12px; margin-top:13px; font-size:11px; color:var(--muted); }
+    .result { min-height:455px; }
+    .empty { min-height:390px; display:grid; align-content:center; justify-items:center; text-align:center; padding:30px; color:var(--muted); }
+    .empty-icon { width:55px; height:55px; display:grid; place-items:center; border-radius:16px; color:var(--green); background:var(--green2); font-size:24px; margin-bottom:15px; }
+    .empty b { color:var(--ink); font-size:14px; margin-bottom:4px; }
+    .output { padding:18px 21px 23px; display:none; }
+    .output-section { margin-bottom:18px; }
+    .output-section h3 { color:var(--green); text-transform:uppercase; letter-spacing:.1em; font-size:10px; margin:0 0 8px; }
+    .output-section p, .output-section ul { margin:0; font-size:14px; line-height:1.65; white-space:pre-wrap; }
+    .output-section li { margin-bottom:5px; }
+    .revision { background:#f6f8f3; border-left:3px solid var(--gold); padding:14px 15px; border-radius:0 8px 8px 0; }
+    .output-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:19px; }
+    .model-badge { font-size:10px; color:#536452; background:#eff4ed; border:1px solid #e4eadf; padding:5px 8px; border-radius:99px; }
+    .notice { background:#fff8e9; border:1px solid #f1e3c2; color:#705a2f; border-radius:10px; padding:11px 13px; font-size:11px; margin-top:17px; }
+    .error { padding:17px 21px; color:var(--red); font-size:13px; display:none; }
+    .spinner { width:13px;height:13px;border:2px solid #ffffff66;border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;display:none; }
+    @keyframes spin {to{transform:rotate(360deg)}}
+    .footnote { color:#7d847c; font-size:11px; margin:17px 2px 0; }
+    @media(max-width:850px) { .layout{grid-template-columns:1fr}.intro{align-items:start;flex-direction:column}.privacy{min-width:0} }
+    @media(max-width:520px) { main{padding:30px 15px 48px}.top{padding:13px 15px}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.card-body,.card-head,.output{padding-left:16px;padding-right:16px} }
+  </style>
+</head>
+<body>
+  <header><div class="top">
+    <div class="brand"><div class="mark">✳</div><span>Classroom Writing Coach</span></div>
+    <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Private browser model · not loaded</span></div>
+  </div></header>
+  <main>
+    <div class="intro">
+      <div><div class="eyebrow">A teacher's writing studio</div><h1>Show students how ideas become clear writing.</h1><p>Create a model revision, unpack the choices behind it, and give students a path to write their own version.</p></div>
+      <div class="privacy">◉ &nbsp; Text stays on this computer<br><span id="privacySub">No drafts are saved by this app.</span></div>
+    </div>
+    <div class="layout">
+      <section class="card">
+        <div class="card-head"><h2>Passage and teaching goal</h2><span class="step">01 &nbsp; Input</span></div>
+        <div class="card-body">
+          <label for="text">Paste a passage to work with</label>
+          <textarea id="text" placeholder="Paste a paragraph, a rough student draft, or a source passage you want to teach from…"></textarea>
+          <div class="meta"><span>Best with one or two paragraphs</span><span id="count">0 / 20,000</span></div>
+          <div class="form-grid">
+            <div><label for="audience">Student level</label><select id="audience"><option>Middle school</option><option selected>Secondary school</option><option>College / university</option><option>English language learners</option><option>General audience</option></select></div>
+            <div><label for="goal">Writing goal</label><select id="goal"><option selected>Clear and natural</option><option>More concise</option><option>More formal for an essay</option><option>Explain a complex idea simply</option><option>Improve paragraph flow</option></select></div>
+            <div class="full"><label for="model">Free browser model <span class="hint">runs on this device with WebGPU</span></label><select id="model"><option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">Llama 3.2 · 3B · balanced quality</option></select></div>
+            <div class="full"><label for="notes">Teacher direction <span class="hint">optional</span></label><input id="notes" placeholder="e.g. keep the student's point of view; focus on stronger topic sentences"></div>
+          </div>
+          <div class="model-status"><span id="modelInfo">First use downloads the model to this device; your browser may cache it for next time.</span><button class="secondary" id="loadModel">Load free model</button></div>
+          <div class="actions"><button class="primary" id="run" disabled><span class="spinner" id="spinner"></span><span id="runLabel">Create teaching example</span></button><button class="secondary" id="sample">Load sample passage</button><span class="tiny">No API key or subscription.</span></div>
+        </div>
+      </section>
+      <section class="card result">
+        <div class="card-head"><h2>Revision and teaching notes</h2><span class="step">02 &nbsp; Review</span></div>
+        <div class="empty" id="empty"><div class="empty-icon">✎</div><b>Your teaching example will appear here</b><span>Load the free browser model, then paste a passage.</span></div>
+        <div class="error" id="error"></div>
+        <div class="output" id="output"></div>
+      </section>
+    </div>
+    <p class="footnote">Use model revisions as teaching examples, not student submissions. Students should make their own choices and cite the original source when they use its ideas. This tool does not determine authorship or check whether work was AI-generated.</p>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
+
