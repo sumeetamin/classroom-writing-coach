@@ -60,7 +60,7 @@ async function collectCompletionWithRecovery(localEngine, request) {
       },
     });
     setStatus('Private browser model · ready', 'ok');
-    $('modelInfo').textContent = 'Model ready. Your passage is processed on this device.';
+    $('modelInfo').textContent = 'Model ready. Generation can take a few minutes on slower devices; your text stays here.';
     updateModelReady();
     $('output').textContent = 'The model is working in your browser…';
     return await collect();
@@ -136,7 +136,7 @@ async function loadModel() {
     engine = instance;
     $('run').disabled = false;
     $('loadModel').textContent = 'Model ready';
-    $('modelInfo').textContent = 'Model ready. Your passage is processed on this device.';
+    $('modelInfo').textContent = 'Model ready. Generation can take a few minutes on slower devices; your text stays here.';
     setStatus('Private browser model · ready', 'ok');
     return engine;
   })();
