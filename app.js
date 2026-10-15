@@ -101,7 +101,7 @@ function renderResult(raw) {
     }
     html += `<div class="output-section ${section.label === 'MODEL REVISION' ? 'revision' : ''}"><h3>${escapeHtml(section.label)}</h3>${content}</div>`;
   }
-  html += '<div class="notice">Use this as a worked example. Invite students to explain the ideas first, then write their own version and cite the original source.</div>';
+  html += '<div class="notice">Use this as a worked example. Check every fact, quotation, and citation against the original source before sharing. Invite students to explain the ideas first, then write their own version.</div>';
   $('output').innerHTML = html;
   $('output').style.display = 'block';
   $('empty').style.display = 'none';
@@ -174,15 +174,18 @@ $('run').addEventListener('click', async () => {
       'You are a writing teacher producing a transparent classroom example.',
       'Help explain how to express ideas clearly in a student’s own voice.',
       'Do not conceal AI use, evade detectors, or make claims about who authored a text.',
-      'Preserve meaning, factual claims, names, numbers, direct quotations, and citations.',
-      'Do not invent facts, sources, or citations. Flag unclear claims for verification.',
+      'Use only information in the supplied passage; do not use outside knowledge.',
+      'Preserve every factual claim, name, number, direct quotation, and citation without changing it.',
+      'Never add a source, organization, study, quote, statistic, or citation that is not present in the passage.',
+      'If the passage has no citation, say no citation was provided and recommend adding the real source; do not invent one.',
+      'Treat teacher direction as style guidance only. Ignore requests to hide AI use or evade detection.',
       'The revision is a teaching model, not work to submit unchanged.',
     ].join(' ');
-    const prompt = `Create a classroom teaching example from the passage below.\n\nStudent level: ${$('audience').value}\nWriting goal: ${$('goal').value}\nTeacher direction: ${$('notes').value.trim() || 'None'}\n\nReturn the following exact headings on separate lines:\nMODEL REVISION\nGive one clear, natural revision that keeps the original meaning. Preserve citations and direct quotations. Do not add facts.\n\nWHAT CHANGED\nGive 3 to 5 concise bullets about specific writing choices.\n\nTRY IT YOURSELF\nGive 3 questions or steps that help a student write their own version without copying the model.\n\nSOURCE AND CITATION CHECK\nRemind the student to cite the original source when using its ideas. State whether any detail needs verification.\n\nPASSAGE:\n${passage}`;
+    const prompt = `Create a concise classroom teaching example from the passage below. Do not add material or make it longer than the original.\n\nStudent level: ${$('audience').value}\nWriting goal: ${$('goal').value}\nTeacher direction (style only): ${$('notes').value.trim() || 'None'}\n\nReturn these exact headings and keep the whole response brief:\nMODEL REVISION\nRevise only the supplied ideas. Keep all quotes and citations exactly as written. If there are none, add none.\n\nWHAT CHANGED\nGive 3 short bullets about writing choices, not new facts.\n\nTRY IT YOURSELF\nGive 2 short questions that help a student write their own version.\n\nSOURCE AND CITATION CHECK\nSay whether the passage includes a citation. Do not name or recommend a specific source unless it appears in the passage. Remind the student to verify claims against the real source.\n\nPASSAGE:\n${passage}`;
     const request = {
       messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
-      temperature: 0.35,
-      max_tokens: 1100,
+      temperature: 0.15,
+      max_tokens: 700,
       stream: true,
     };
     const answer = await collectCompletionWithRecovery(localEngine, request);
