@@ -25,6 +25,48 @@ function showError(message) {
   $('error').style.display = 'block';
 }
 
+function updateModelReady() {
+  $('loadModel').disabled = Boolean(engine);
+  $('loadModel').textContent = engine ? 'Model ready' : 'Load free model';
+  $('run').disabled = !engine;
+}
+
+function isModelNotLoaded(error) {
+  return /model not loaded|ensure you have called.*reload/i.test(error?.message || '');
+}
+
+async function collectCompletionWithRecovery(localEngine, request) {
+  const collect = async () => {
+    const completion = await localEngine.chat.completions.create(request);
+    let answer = '';
+    for await (const chunk of completion) {
+      answer += chunk.choices?.[0]?.delta?.content || '';
+      $('output').textContent = answer;
+    }
+    return answer;
+  };
+  try {
+    return await collect();
+  } catch (error) {
+    if (!isModelNotLoaded(error)) throw error;
+    $('output').textContent = 'The browser paused the model. Reloading it now…';
+    setStatus('Model paused · reloading…');
+    $('modelInfo').textContent = 'The browser paused the model. Reloading it now; your passage stays on this device.';
+    await localEngine.reload(MODEL_ID, {
+      initProgressCallback: (progress) => {
+        const message = progress?.text || 'Reloading model…';
+        $('modelInfo').textContent = message;
+        setStatus('Reloading model…');
+      },
+    });
+    setStatus('Private browser model · ready', 'ok');
+    $('modelInfo').textContent = 'Model ready. Your passage is processed on this device.';
+    updateModelReady();
+    $('output').textContent = 'The model is working in your browser…';
+    return await collect();
+  }
+}
+
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (ch) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -137,21 +179,24 @@ $('run').addEventListener('click', async () => {
       'The revision is a teaching model, not work to submit unchanged.',
     ].join(' ');
     const prompt = `Create a classroom teaching example from the passage below.\n\nStudent level: ${$('audience').value}\nWriting goal: ${$('goal').value}\nTeacher direction: ${$('notes').value.trim() || 'None'}\n\nReturn the following exact headings on separate lines:\nMODEL REVISION\nGive one clear, natural revision that keeps the original meaning. Preserve citations and direct quotations. Do not add facts.\n\nWHAT CHANGED\nGive 3 to 5 concise bullets about specific writing choices.\n\nTRY IT YOURSELF\nGive 3 questions or steps that help a student write their own version without copying the model.\n\nSOURCE AND CITATION CHECK\nRemind the student to cite the original source when using its ideas. State whether any detail needs verification.\n\nPASSAGE:\n${passage}`;
-    const completion = await localEngine.chat.completions.create({
+    const request = {
       messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
       temperature: 0.35,
       max_tokens: 1100,
       stream: true,
-    });
-    let answer = '';
-    for await (const chunk of completion) {
-      answer += chunk.choices?.[0]?.delta?.content || '';
-      $('output').textContent = answer;
-    }
+    };
+    const answer = await collectCompletionWithRecovery(localEngine, request);
     renderResult(answer.trim() || 'The local model returned an empty response. Try again.');
   } catch (error) {
     $('output').style.display = 'none';
     $('empty').style.display = 'grid';
+    if (/model not loaded|reload/i.test(error?.message || '')) {
+      engine = null;
+      enginePromise = null;
+      updateModelReady();
+      setStatus('Model needs to be loaded again', 'bad');
+      $('modelInfo').textContent = 'The browser stopped the model. Select “Load free model” to start it again.';
+    }
     showError(error.message || 'The teaching example could not be created.');
   } finally {
     $('run').disabled = !engine;
